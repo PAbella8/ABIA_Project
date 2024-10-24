@@ -2,11 +2,8 @@ from abia_azamon import *
 from Acciones import *
 class Paquetes(object):
     def __init__(self,num_paquetes: int, semilla: int):
-        self._lista_paquestes_inicial = random_paquetes(num_paquetes,semilla)
-        self._num_paquetes_sin_asignar = len(self._lista_paquestes)
-        self._paquetes=[[],[],[]] #paquetes agrupados por prioridad
-        for paquete in self._lista_paquestes_inicial:
-            self._paquetes[paquete.prioridad].append(paquete)
+        self._lista_paquetes= random_paquetes(num_paquetes,semilla)
+        self._num_paquetes_sin_asignar = len(self._lista_paquetes)
 
     
     def paquetes_sin_asignar(self):
@@ -14,3 +11,6 @@ class Paquetes(object):
     
     def asignar(self):
         self._num_paquetes_sin_asignar -= 1
+
+    def primer_paquete(self,num_paquete):
+        return self._lista_paquetes[num_paquete].peso, self._lista_paquetes[num_paquete].prioridad
