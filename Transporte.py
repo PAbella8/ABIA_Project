@@ -20,3 +20,13 @@ class Transporte(object):
     
     def coste(self,oferta):
         return self._ofertas_ordenadas[oferta[0]][oferta[1]].precio
+
+    def pesomax(self,oferta):
+        return self._ofertas_ordenadas[oferta[0]][oferta[1]].pesomax
+    
+    def ofertas_prioridad(self,prioridad):
+        dia=prioridad*2
+        ofertas=[]
+        for i in range(dia+1):
+            ofertas+=self._ofertas_ordenadas[i]
+        return ofertas

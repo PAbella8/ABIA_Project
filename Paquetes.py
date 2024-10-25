@@ -14,3 +14,6 @@ class Paquetes(object):
 
     def primer_paquete(self,num_paquete):
         return self._lista_paquetes[num_paquete].peso, self._lista_paquetes[num_paquete].prioridad
+    
+    def peso(self,paquete):
+        return self._lista_paquetes[paquete].peso
