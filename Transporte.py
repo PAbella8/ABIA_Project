@@ -28,5 +28,5 @@ class Transporte(object):
         dia=prioridad*2
         ofertas=[]
         for i in range(dia+1):
-            ofertas+=self._ofertas_ordenadas[i]
+            ofertas+=[(i,j) for j in range(len(self._ofertas_ordenadas[i]))]
         return ofertas
