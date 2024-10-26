@@ -25,32 +25,27 @@ class Estado(object):
             lista_peso_libre.append(peso_libre)
             lista_peso_ocupado.append(pesomax-peso_libre)
         ofertas_usadas=self._asignaciones.keys()
+
         for i in range(len(ofertas_usadas)):
             peso_ocupado=lista_peso_ocupado[i]
             oferta1=ofertas_usadas[i]
             prioridad1=(oferta1[0]+1)//2
-            for j in range(len(lista_peso_libre)):  #cambiar vv
-                oferta2=ofertas_usadas[j]
-                prioridad2=(oferta2[0]+1)//2
-                if peso_ocupado<=lista_peso_libre[j] and prioridad1>=prioridad2:
+            total_ofertas=self._transporte.ofertas_prioridad(prioridad1)
+            for oferta2 in total_ofertas:
+                if (oferta in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta)]) or (oferta not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta)):
                     yield SwapOferta(oferta1,oferta2)
-
-            total_ofertas=self._transporte.ofertas_prioridad(prioridad1) 
-            for oferta in total_ofertas:
-                if oferta not in ofertas_usadas and peso_ocupado[i]<=self._transporte.pesomax(oferta):
-                    yield SwapOferta(oferta1,oferta) #cambiar ^^
 
             for paquete in ofertas_usadas[i]:
                 peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
                 ofertas_prioridad=self._transporte.ofertas_prioridad(prioridad_paquete)
                 for oferta in ofertas_prioridad:
                     if oferta in ofertas_usadas:
-                        if peso_paquete<=peso_libre[ofertas_usadas.index(oferta)]:
+                        if peso_paquete<=lista_peso_libre[ofertas_usadas.index(oferta)]:
                             yield MovePaquete(paquete,oferta1,oferta)
                         for paquete2 in self._asignaciones[oferta]:
                             peso_paquete2,prioridad_paquete2=self._paquetes.primer_paquete(paquete2)
                             if peso_paquete>=peso_paquete2:
-                                if peso_libre[ofertas_usadas.index(oferta)]+peso_paquete2>=peso_paquete:
+                                if lista_peso_libre[ofertas_usadas.index(oferta)]+peso_paquete2>=peso_paquete:
                                     if prioridad_paquete<=prioridad_paquete2:
                                         if (oferta[0]+1)//2<=prioridad_paquete2:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
@@ -58,7 +53,7 @@ class Estado(object):
                                         if prioridad1<=prioridad_paquete:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                             else:
-                                if peso_libre[ofertas_usadas.index(oferta1)]+peso_paquete>=peso_paquete2:
+                                if lista_peso_libre[ofertas_usadas.index(oferta1)]+peso_paquete>=peso_paquete2:
                                     if prioridad_paquete<=prioridad_paquete2:
                                         if (oferta[0]+1)//2<=prioridad_paquete2:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
