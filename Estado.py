@@ -1,7 +1,7 @@
 from Paquetes import Paquetes
 from Transporte import Transporte
 from Acciones import*
-from copy import*
+import copy
 
 class Estado(object):
     '''
@@ -24,7 +24,7 @@ class Estado(object):
                 peso_libre-=self._paquetes.peso(paquete)
             lista_peso_libre.append(peso_libre)
             lista_peso_ocupado.append(pesomax-peso_libre)
-        ofertas_usadas=self._asignaciones.keys()
+        ofertas_usadas=list(self._asignaciones.keys())
 
         for i in range(len(ofertas_usadas)):
             peso_ocupado=lista_peso_ocupado[i]
@@ -32,12 +32,13 @@ class Estado(object):
             prioridad1=(oferta1[0]+1)//2
             total_ofertas=self._transporte.ofertas_prioridad(prioridad1)
             for oferta2 in total_ofertas:
-                if (oferta in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta)]) or (oferta not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta)):
+                if oferta2!=oferta1 and ((oferta2 in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta2)]) or (oferta2 not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta2))):
                     yield SwapOferta(oferta1,oferta2)
 
-            for paquete in ofertas_usadas[i]:
+            for paquete in self._asignaciones[ofertas_usadas[i]]:
                 peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
                 ofertas_prioridad=self._transporte.ofertas_prioridad(prioridad_paquete)
+                ofertas_prioridad.remove(oferta1)
                 for oferta in ofertas_prioridad:
                     if oferta in ofertas_usadas:
                         if peso_paquete<=lista_peso_libre[ofertas_usadas.index(oferta)]:
@@ -82,7 +83,7 @@ class Estado(object):
 
             if oferta_final not in asignaciones.keys():
                 asignaciones[oferta_final]=[]
-            
+                coste+=self._transporte.coste(oferta_final) 
             asignaciones[oferta_final]+=asignaciones[oferta_inicial]
             del asignaciones[oferta_inicial]
             coste-=self._transporte.coste(oferta_inicial)
@@ -93,14 +94,55 @@ class Estado(object):
             felicidad_final=paquetes_prioridad[0]*max(0,(1-dia_final))+paquetes_prioridad[1]*max(0,(3-dia_final))
             felicidad=felicidad-felicidad_inicial+felicidad_final
 
-        if isinstance()
-            
-            
+        elif isinstance(accion,MovePaquete):
+            paquete=accion._paquete
+            peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
+            oferta_inicial=accion._oferta_inicial
+            oferta_final=accion._oferta_final
+            dia_inicial=oferta_final[0]
+            dia_final=oferta_final[0]
+            asignaciones[oferta_inicial].remove(paquete)
+            if asignaciones[oferta_inicial]==[]:
+                del asignaciones[oferta_inicial]
+                coste-=self._transporte.coste(oferta_inicial)
+            if oferta_final not in asignaciones:
+                asignaciones[oferta_final]=[]
+                coste+=self._transporte.coste(oferta_final)
+            asignaciones[oferta_final].append(paquete)
+            coste_inicial=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
+            coste_final=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
+            coste=coste-coste_inicial+coste_final
+            dia_paquete=3 if prioridad_paquete==2 else prioridad_paquete
+            felicidad_inicial=max(0,dia_paquete-dia_inicial)
+            felicidad_final=max(0,dia_paquete-dia_final)
+            felicidad=felicidad-felicidad_inicial+felicidad_final
         
+        elif isinstance(accion,SwapPaquetes):
+            paquete1=accion._paquete1
+            paquete2=accion._paquete2
+            peso1,prioridad1=self._paquetes.primer_paquete(paquete1)
+            peso2,prioridad2=self._paquetes.primer_paquete(paquete2)
+            oferta1=accion._oferta_inicial
+            oferta2=accion._oferta_final
+            dia1=oferta1[0]
+            dia2=oferta2[0]
+            asignaciones[oferta1].remove(paquete1)
+            asignaciones[oferta1].append(paquete2)
+            asignaciones[oferta2].remove(paquete2)
+            asignaciones[oferta2].append(paquete1)
+            coste_inicial=(peso1*0.25*(2 if dia1==4 else 1) if dia1>=2 else 0) + (peso2*0.25*(2 if dia2==4 else 1) if dia2>=2 else 0)
+            coste_final=(peso2*0.25*(2 if dia1==4 else 1) if dia1>=2 else 0) + (peso1*0.25*(2 if dia2==4 else 1) if dia2>=2 else 0)
+            coste=coste-coste_inicial+coste_final
+            dia_paquete1=3 if prioridad1==2 else prioridad1
+            dia_paquete2=3 if prioridad2==2 else prioridad2
+            felicidad_inicial=max(0,dia_paquete1-dia1)+max(0,dia_paquete2-dia2)
+            felicidad_final=max(0,dia_paquete1-dia2)+max(0,dia_paquete2-dia1)
+            felicidad=felicidad-felicidad_inicial+felicidad_final
 
+        return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
 
-
-
+    def heuristic(self):
+        return self._felicidad-self._coste
 
     
 def estado_inicial(paquetes: Paquetes,transporte: Transporte):
@@ -111,16 +153,19 @@ def estado_inicial(paquetes: Paquetes,transporte: Transporte):
     cont=0
     peso_libre=0
     coste=0
+    oferta=(-1,-1)
     while paquetes.paquetes_sin_asignar():
         peso,prioridad=paquetes.primer_paquete(cont)
         dia= 3 if prioridad==2 else prioridad
-        if peso_libre<peso or dia>oferta[0]:
+        if dia>oferta[0] or peso_libre<peso:
             oferta,peso_libre,coste_oferta=transporte.get_oferta(dia)
             diccionario[oferta]=[cont]
             coste+=coste_oferta
         else:
             diccionario[oferta].append(cont)
+        peso_libre-=peso
         cont+=1
         paquetes.asignar()
-        coste+=peso*0.25*(2 if dia==4 else 1) if dia>=2 else 0
+        coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
     return Estado(diccionario,transporte,paquetes,coste,0)
+

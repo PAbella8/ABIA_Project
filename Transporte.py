@@ -13,8 +13,8 @@ class Transporte(object):
     def get_oferta(self,dia):
         if self._ofertas_no_asignadas[dia]==0:
             dia=dia+1
-        self._ofertas_no_asignadas[dia]-=1
         pos_2=len(self._ofertas_ordenadas[dia])-self._ofertas_no_asignadas[dia]
+        self._ofertas_no_asignadas[dia]-=1
         oferta=self._ofertas_ordenadas[dia][pos_2]
         return (dia,pos_2),oferta.pesomax, oferta.precio
     
