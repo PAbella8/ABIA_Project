@@ -14,10 +14,11 @@ class Problema(Problem):
         return estado.acciones()
     
     def result(self,estado,accion):
+        print(estado._asignaciones)
         return estado.aplicar_accion(accion)
     
     def value(self,estado):
-        return -estado.heuristic()
+        return estado.heuristic()*(-1)
     
     def goal_test(self, state):
         return False

@@ -9,4 +9,4 @@ semilla=1111
 paquetes=Paquetes(num_paquetes,semilla)
 
 problema=hill_climbing(Problema(estado_inicial(paquetes,Transporte(paquetes._lista_paquetes,1.2,semilla))))
-print(problema)
+print('solución:',problema._asignaciones,problema._coste,problema._felicidad)

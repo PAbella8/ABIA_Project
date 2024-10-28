@@ -48,18 +48,18 @@ class Estado(object):
                             if peso_paquete>=peso_paquete2:
                                 if lista_peso_libre[ofertas_usadas.index(oferta)]+peso_paquete2>=peso_paquete:
                                     if prioridad_paquete<=prioridad_paquete2:
-                                        if (oferta[0]+1)//2<=prioridad_paquete2:
+                                        if (oferta[0]+1)//2<=prioridad_paquete:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                                     else:
-                                        if prioridad1<=prioridad_paquete:
+                                        if prioridad1<=prioridad_paquete2:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                             else:
                                 if lista_peso_libre[ofertas_usadas.index(oferta1)]+peso_paquete>=peso_paquete2:
                                     if prioridad_paquete<=prioridad_paquete2:
-                                        if (oferta[0]+1)//2<=prioridad_paquete2:
+                                        if (oferta[0]+1)//2<=prioridad_paquete:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                                     else:
-                                        if prioridad1<=prioridad_paquete:
+                                        if prioridad1<=prioridad_paquete2:
                                             yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                     elif peso_paquete<=self._transporte.pesomax(oferta):
                         yield MovePaquete(paquete,oferta1,oferta)
@@ -76,6 +76,7 @@ class Estado(object):
             dia_inicial=oferta_inicial[0]
             dia_final=oferta_final[0]
             paquetes=asignaciones[oferta_inicial]
+            print('swap ofertas', oferta_inicial, oferta_final)
             for paquete in paquetes:
                 peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
                 peso_ocupado_inicial+=peso_paquete
@@ -102,6 +103,7 @@ class Estado(object):
             dia_inicial=oferta_final[0]
             dia_final=oferta_final[0]
             asignaciones[oferta_inicial].remove(paquete)
+            print('Move paquete',paquete, 'from',oferta_inicial,'to',oferta_final)
             if asignaciones[oferta_inicial]==[]:
                 del asignaciones[oferta_inicial]
                 coste-=self._transporte.coste(oferta_inicial)
@@ -124,6 +126,7 @@ class Estado(object):
             peso2,prioridad2=self._paquetes.primer_paquete(paquete2)
             oferta1=accion._oferta_inicial
             oferta2=accion._oferta_final
+            print('Swap paquetes',oferta1,paquete1,oferta2,paquete2)
             dia1=oferta1[0]
             dia2=oferta2[0]
             asignaciones[oferta1].remove(paquete1)
@@ -138,7 +141,9 @@ class Estado(object):
             felicidad_inicial=max(0,dia_paquete1-dia1)+max(0,dia_paquete2-dia2)
             felicidad_final=max(0,dia_paquete1-dia2)+max(0,dia_paquete2-dia1)
             felicidad=felicidad-felicidad_inicial+felicidad_final
-
+        print(asignaciones)
+        print(coste)
+        print(felicidad)
         return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
 
     def heuristic(self):
