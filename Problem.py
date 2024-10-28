@@ -18,7 +18,7 @@ class Problema(Problem):
         return estado.aplicar_accion(accion)
     
     def value(self,estado):
-        return estado.heuristic()*(-1)
+        return estado.heuristic()
     
     def goal_test(self, state):
         return False

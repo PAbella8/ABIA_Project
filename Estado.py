@@ -147,7 +147,7 @@ class Estado(object):
         return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
 
     def heuristic(self):
-        return self._felicidad-self._coste
+        return self._felicidad/self._coste
 
     
 def estado_inicial(paquetes: Paquetes,transporte: Transporte):
