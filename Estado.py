@@ -89,7 +89,9 @@ class Estado(object):
             del asignaciones[oferta_inicial]
             coste-=self._transporte.coste(oferta_inicial)
             coste_inicial=peso_ocupado_inicial*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
+            coste_inicial+= (1.5*(1+ ((oferta_inicial[0]+1)//2)%2)*len(paquetes) if ((oferta_inicial[0]+1)//2)>0 else 5)
             coste_final=peso_ocupado_inicial*0.25*(2 if dia_final==4 else 1) if dia_final>=2 else 0
+            coste_final+=(1.5*(1+ ((oferta_final[0]+1)//2)%2)*len(paquetes) if ((oferta_final[0]+1)//2)>0 else 5)
             coste=coste-coste_inicial+coste_final
             felicidad_inicial=paquetes_prioridad[0]*max(0,(1-dia_inicial))+paquetes_prioridad[1]*max(0,(3-dia_inicial))
             felicidad_final=paquetes_prioridad[0]*max(0,(1-dia_final))+paquetes_prioridad[1]*max(0,(3-dia_final))
@@ -112,7 +114,9 @@ class Estado(object):
                 coste+=self._transporte.coste(oferta_final)
             asignaciones[oferta_final].append(paquete)
             coste_inicial=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
+            coste_inicial+= (1.5*(1+ ((oferta_inicial[0]+1)//2)%2) if ((oferta_inicial[0]+1)//2)>0 else 5)
             coste_final=peso_paquete*0.25*(2 if dia_final==4 else 1) if dia_final>=2 else 0
+            coste_final+=(1.5*(1+ ((oferta_final[0]+1)//2)%2) if ((oferta_final[0]+1)//2)>0 else 5)
             coste=coste-coste_inicial+coste_final
             dia_paquete=3 if prioridad_paquete==2 else prioridad_paquete
             felicidad_inicial=max(0,dia_paquete-dia_inicial)
@@ -144,7 +148,11 @@ class Estado(object):
         print(asignaciones)
         print(coste)
         print(felicidad)
+        print(self)
         return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
+
+    def __repr__(self):
+        return f"ESTADO: {self._coste} {self._felicidad}"
 
     def heuristic(self):
         return float(self._felicidad)/self._coste
@@ -172,5 +180,7 @@ def estado_inicial(paquetes: Paquetes,transporte: Transporte):
         cont+=1
         paquetes.asignar()
         coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
+        coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5
+        print(coste)
     return Estado(diccionario,transporte,paquetes,coste,0)
 
