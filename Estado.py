@@ -100,7 +100,7 @@ class Estado(object):
             peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
             oferta_inicial=accion._oferta_inicial
             oferta_final=accion._oferta_final
-            dia_inicial=oferta_final[0]
+            dia_inicial=oferta_inicial[0]
             dia_final=oferta_final[0]
             asignaciones[oferta_inicial].remove(paquete)
             print('Move paquete',paquete, 'from',oferta_inicial,'to',oferta_final)
@@ -112,7 +112,7 @@ class Estado(object):
                 coste+=self._transporte.coste(oferta_final)
             asignaciones[oferta_final].append(paquete)
             coste_inicial=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
-            coste_final=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
+            coste_final=peso_paquete*0.25*(2 if dia_final==4 else 1) if dia_final>=2 else 0
             coste=coste-coste_inicial+coste_final
             dia_paquete=3 if prioridad_paquete==2 else prioridad_paquete
             felicidad_inicial=max(0,dia_paquete-dia_inicial)
@@ -147,7 +147,7 @@ class Estado(object):
         return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
 
     def heuristic(self):
-        return self._felicidad/self._coste
+        return float(self._felicidad)/self._coste
 
     
 def estado_inicial(paquetes: Paquetes,transporte: Transporte):

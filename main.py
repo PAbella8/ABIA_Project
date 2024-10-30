@@ -4,8 +4,8 @@ from Paquetes import Paquetes
 from Transporte import Transporte
 from aima.search import hill_climbing, simulated_annealing
 
-num_paquetes=20
-semilla=1235
+num_paquetes=3
+semilla=1112
 paquetes=Paquetes(num_paquetes,semilla)
 transporte=Transporte(paquetes._lista_paquetes,1.2,semilla)
 
