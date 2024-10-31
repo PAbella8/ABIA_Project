@@ -14,7 +14,7 @@ class Problema(Problem):
         return estado.acciones()
     
     def result(self,estado,accion):
-        print(estado._asignaciones)
+        #print(estado._asignaciones)
         return estado.aplicar_accion(accion)
     
     def value(self,estado):
