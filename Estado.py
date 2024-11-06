@@ -235,3 +235,4 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
         #print(coste)
         print(diccionario)
     return Estado(diccionario,transporte,paquetes,coste,0)
+#
