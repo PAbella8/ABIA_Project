@@ -6,8 +6,6 @@ class Transporte(object):
         for oferta in self._lista_ofertas:
             self._ofertas_ordenadas[oferta.dias-1].append(oferta)
         self._ofertas_no_asignadas=[len(lista) for lista in self._ofertas_ordenadas]
-
-
         self._pesos = {oferta:oferta.pesomax for oferta in self._lista_ofertas}
 
     def get_oferta(self,dia):

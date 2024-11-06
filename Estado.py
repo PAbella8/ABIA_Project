@@ -2,18 +2,22 @@ from Paquetes import Paquetes
 from Transporte import Transporte
 from Acciones import*
 import copy
+import math
+import random
 
 class Estado(object):
     '''
     Clase que representa el estado del problema.
     '''
+
     def __init__(self,asignaciones,transporte,paquetes,coste,felicidad) -> None:
         self._asignaciones=asignaciones
         self._coste=coste
         self._felicidad=felicidad
         self._transporte=transporte
         self._paquetes=paquetes
-    
+        self.k=1
+        self.e=1
     def acciones(self):
         lista_peso_libre=[]
         lista_peso_ocupado=[]
@@ -154,14 +158,28 @@ class Estado(object):
     def __repr__(self):
         return f"ESTADO: {self._coste} {self._felicidad}"
 
-    def heuristic(self):
+    def heuristic_basico(self):
         return float(self._felicidad)/self._coste
-
+    
+    def heuristic_ponderado(self):
+        return self.k*float(self._felicidad)-self._coste
+    
+    def heuristic_entropia(self):
+        total_entropy=0
+        for oferta,lista_paquetes in self._asignaciones.items():
+            pesomax=self._transporte.pesomax(oferta)
+            peso_libre=pesomax
+            for paquete in lista_paquetes:
+                peso_libre-=self._paquetes.peso(paquete)
+            occupancy=peso_libre/pesomax
+            total_entropy = total_entropy + (occupancy * math.log(occupancy))
+        return  self.k*float(self._felicidad)-self._coste - self.e*total_entropy
     
 def estado_inicial(paquetes: Paquetes,transporte: Transporte):
     '''
     Función que genera el estado inicial del problema.
     '''
+    paquetes.ordenar()
     diccionario={}
     cont=0
     peso_libre=0
@@ -184,3 +202,36 @@ def estado_inicial(paquetes: Paquetes,transporte: Transporte):
         #print(coste)
     return Estado(diccionario,transporte,paquetes,coste,0)
 
+def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
+    diccionario={}
+    cont=0
+    coste=0
+    oferta=(-1,-1)
+    prioridad_ofertas=[transporte.ofertas_prioridad(0),transporte.ofertas_prioridad(1),transporte.ofertas_prioridad(2)]
+    no_cabe=True
+    pesos_libres_oferta=[[50 for _ in range(len(transporte._ofertas_ordenadas[i]))] for i in range(5)]
+
+    while paquetes.paquetes_sin_asignar():
+        peso,prioridad=paquetes.primer_paquete(cont)
+        
+        while no_cabe:
+            oferta=random.choice(prioridad_ofertas[prioridad])
+            if peso<=pesos_libres_oferta[oferta[0]][oferta[1]]:
+                no_cabe=False
+                
+        if oferta not in diccionario:
+            diccionario[oferta]=[cont]
+            coste+=transporte.coste(oferta) 
+            pesos_libres_oferta[oferta[0]][oferta[1]]=transporte.pesomax(oferta)-peso
+        
+        else:
+            diccionario[oferta].append(cont) 
+            pesos_libres_oferta[oferta[0]][oferta[1]]-=peso   
+
+        cont+=1
+        paquetes.asignar()
+        coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
+        coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5
+        #print(coste)
+        print(diccionario)
+    return Estado(diccionario,transporte,paquetes,coste,0)
