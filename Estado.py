@@ -207,13 +207,13 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
     cont=0
     coste=0
     oferta=(-1,-1)
-    prioridad_ofertas=[transporte.ofertas_prioridad(0),transporte.ofertas_prioridad(1),transporte.ofertas_prioridad(2)]
-    no_cabe=True
+    prioridad_ofertas=[transporte.ofertas_prioridad_estricta(0),transporte.ofertas_prioridad_estricta(1),transporte.ofertas_prioridad_estricta(2)]
+    
     pesos_libres_oferta=[[50 for _ in range(len(transporte._ofertas_ordenadas[i]))] for i in range(5)]
 
     while paquetes.paquetes_sin_asignar():
         peso,prioridad=paquetes.primer_paquete(cont)
-        
+        no_cabe=True
         while no_cabe:
             oferta=random.choice(prioridad_ofertas[prioridad])
             if peso<=pesos_libres_oferta[oferta[0]][oferta[1]]:
@@ -233,6 +233,6 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
         coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
         coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5
         #print(coste)
-        print(diccionario)
+    print('estado inicial:',diccionario)
     return Estado(diccionario,transporte,paquetes,coste,0)
 #

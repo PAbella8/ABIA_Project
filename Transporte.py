@@ -28,3 +28,10 @@ class Transporte(object):
         for i in range(dia+1):
             ofertas+=[(i,j) for j in range(len(self._ofertas_ordenadas[i]))]
         return ofertas
+    
+    def ofertas_prioridad_estricta(self,prioridad):
+        dia=prioridad*2
+        ofertas=[]
+        for i in range(max(0,dia-1),dia+1):
+            ofertas+=[(i,j) for j in range(len(self._ofertas_ordenadas[i]))]
+        return ofertas
