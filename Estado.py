@@ -18,7 +18,7 @@ class Estado(object):
         self._paquetes=paquetes
         self.k=1
         self.e=1
-    def acciones(self):
+    def acciones(self,extendido):
         lista_peso_libre=[]
         lista_peso_ocupado=[]
         for oferta,lista_paquetes in self._asignaciones.items():
@@ -35,9 +35,10 @@ class Estado(object):
             oferta1=ofertas_usadas[i]
             prioridad1=(oferta1[0]+1)//2
             total_ofertas=self._transporte.ofertas_prioridad(prioridad1)
-            for oferta2 in total_ofertas:
-                if oferta2!=oferta1 and ((oferta2 in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta2)]) or (oferta2 not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta2))):
-                    yield SwapOferta(oferta1,oferta2)
+            if extendido:
+                for oferta2 in total_ofertas:
+                    if oferta2!=oferta1 and ((oferta2 in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta2)]) or (oferta2 not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta2))):
+                        yield SwapOferta(oferta1,oferta2)
 
             for paquete in self._asignaciones[ofertas_usadas[i]]:
                 peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
@@ -72,9 +73,12 @@ class Estado(object):
         asignaciones=copy.deepcopy(self._asignaciones)
         coste=self._coste
         felicidad=self._felicidad
+        oferta_inicial=accion._oferta_inicial
+        oferta_final=accion._oferta_final
+        coste_oferta_inicial=self._transporte.coste(oferta_inicial)
+        coste_oferta_final=self._transporte.coste(oferta_final)
         if isinstance(accion,SwapOferta):
-            oferta_inicial=accion._oferta_inicial
-            oferta_final=accion._oferta_final
+             
             peso_ocupado_inicial=0
             paquetes_prioridad=[0,0]
             dia_inicial=oferta_inicial[0]
@@ -88,15 +92,14 @@ class Estado(object):
 
             if oferta_final not in asignaciones.keys():
                 asignaciones[oferta_final]=[]
-                coste+=self._transporte.coste(oferta_final) 
             asignaciones[oferta_final]+=asignaciones[oferta_inicial]
             del asignaciones[oferta_inicial]
-            coste-=self._transporte.coste(oferta_inicial)
+            coste-=coste_oferta_inicial*peso_ocupado_inicial
             coste_inicial=peso_ocupado_inicial*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
             coste_inicial+= (1.5*(1+ ((oferta_inicial[0]+1)//2)%2)*len(paquetes) if oferta_inicial[0]!=0 else 5*len(paquetes))
             coste_final=peso_ocupado_inicial*0.25*(2 if dia_final==4 else 1) if dia_final>=2 else 0
             coste_final+=(1.5*(1+ ((oferta_final[0]+1)//2)%2)*len(paquetes) if oferta_final[0]!=0 else 5*len(paquetes))
-            coste=coste-coste_inicial+coste_final
+            coste=coste-coste_inicial+coste_final+peso_ocupado_inicial*coste_oferta_final
             felicidad_inicial=paquetes_prioridad[0]*max(0,(1-dia_inicial))+paquetes_prioridad[1]*max(0,(3-dia_inicial))
             felicidad_final=paquetes_prioridad[0]*max(0,(1-dia_final))+paquetes_prioridad[1]*max(0,(3-dia_final))
             felicidad=felicidad-felicidad_inicial+felicidad_final
@@ -104,24 +107,22 @@ class Estado(object):
         elif isinstance(accion,MovePaquete):
             paquete=accion._paquete
             peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
-            oferta_inicial=accion._oferta_inicial
-            oferta_final=accion._oferta_final
+            
             dia_inicial=oferta_inicial[0]
             dia_final=oferta_final[0]
             asignaciones[oferta_inicial].remove(paquete)
             #print('Move paquete',paquete, 'from',oferta_inicial,'to',oferta_final)
             if asignaciones[oferta_inicial]==[]:
                 del asignaciones[oferta_inicial]
-                coste-=self._transporte.coste(oferta_inicial)
             if oferta_final not in asignaciones:
                 asignaciones[oferta_final]=[]
-                coste+=self._transporte.coste(oferta_final)
             asignaciones[oferta_final].append(paquete)
+            coste-=peso_paquete*coste_oferta_inicial
             coste_inicial=peso_paquete*0.25*(2 if dia_inicial==4 else 1) if dia_inicial>=2 else 0
             coste_inicial+= (1.5*(1+ ((dia_inicial+1)//2)%2) if dia_inicial!=0 else 5)
             coste_final=peso_paquete*0.25*(2 if dia_final==4 else 1) if dia_final>=2 else 0
             coste_final+=(1.5*(1+ ((dia_final+1)//2)%2) if dia_final!=0 else 5)
-            coste=coste-coste_inicial+coste_final
+            coste=coste-coste_inicial+coste_final + coste_final*peso_paquete
             dia_paquete=3 if prioridad_paquete==2 else prioridad_paquete
             felicidad_inicial=max(0,dia_paquete-dia_inicial)
             felicidad_final=max(0,dia_paquete-dia_final)
@@ -132,18 +133,19 @@ class Estado(object):
             paquete2=accion._paquete2
             peso1,prioridad1=self._paquetes.primer_paquete(paquete1)
             peso2,prioridad2=self._paquetes.primer_paquete(paquete2)
-            oferta1=accion._oferta_inicial
-            oferta2=accion._oferta_final
+
             #print('Swap paquetes',oferta1,paquete1,oferta2,paquete2)
-            dia1=oferta1[0]
-            dia2=oferta2[0]
-            asignaciones[oferta1].remove(paquete1)
-            asignaciones[oferta1].append(paquete2)
-            asignaciones[oferta2].remove(paquete2)
-            asignaciones[oferta2].append(paquete1)
+            dia1=oferta_inicial[0]
+            dia2=oferta_final[0]
+            asignaciones[oferta_inicial].remove(paquete1)
+            asignaciones[oferta_inicial].append(paquete2)
+            asignaciones[oferta_final].remove(paquete2)
+            asignaciones[oferta_final].append(paquete1)
+            coste-=coste_oferta_inicial*peso1
+            coste-=coste_oferta_final*peso2
             coste_inicial=(peso1*0.25*(2 if dia1==4 else 1) if dia1>=2 else 0) + (peso2*0.25*(2 if dia2==4 else 1) if dia2>=2 else 0)
             coste_final=(peso2*0.25*(2 if dia1==4 else 1) if dia1>=2 else 0) + (peso1*0.25*(2 if dia2==4 else 1) if dia2>=2 else 0)
-            coste=coste-coste_inicial+coste_final
+            coste=coste-coste_inicial+coste_final + coste_oferta_final*peso2 + coste_oferta_inicial * peso1
             dia_paquete1=3 if prioridad1==2 else prioridad1
             dia_paquete2=3 if prioridad2==2 else prioridad2
             felicidad_inicial=max(0,dia_paquete1-dia1)+max(0,dia_paquete2-dia2)
@@ -159,7 +161,7 @@ class Estado(object):
         return f"ESTADO: {self._coste} {self._felicidad}"
 
     def heuristic_basico(self):
-        return float(self._felicidad)/self._coste
+        return -self._coste#float(self._felicidad)/self._coste
     
     def heuristic_ponderado(self):
         return self.k*float(self._felicidad)-self._coste
@@ -191,9 +193,10 @@ def estado_inicial(paquetes: Paquetes,transporte: Transporte):
         if dia>oferta[0] or peso_libre<peso:
             oferta,peso_libre,coste_oferta=transporte.get_oferta(dia)
             diccionario[oferta]=[cont]
-            coste+=coste_oferta
+            
         else:
             diccionario[oferta].append(cont)
+        coste+=coste_oferta*peso
         peso_libre-=peso
         cont+=1
         paquetes.asignar()
@@ -221,13 +224,13 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
                 
         if oferta not in diccionario:
             diccionario[oferta]=[cont]
-            coste+=transporte.coste(oferta) 
             pesos_libres_oferta[oferta[0]][oferta[1]]=transporte.pesomax(oferta)-peso
         
         else:
             diccionario[oferta].append(cont) 
             pesos_libres_oferta[oferta[0]][oferta[1]]-=peso   
 
+        coste+=transporte.coste(oferta)*peso
         cont+=1
         paquetes.asignar()
         coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
