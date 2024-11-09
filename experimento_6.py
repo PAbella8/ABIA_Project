@@ -18,7 +18,7 @@ def ponderaciones(num,semilla):
         peso = val/num
         
         coste= []
-        for _ in range(10):
+        for _ in range(3):
             paquetes=Paquetes(num_paquetes,semilla)
             transporte=Transporte(paquetes._lista_paquetes,1.2,semilla)
             p = Problema(estado_inicial_aleatorio(paquetes,transporte,peso),1,'Ponderado')
