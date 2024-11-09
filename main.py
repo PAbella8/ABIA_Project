@@ -10,6 +10,7 @@ from Paquetes import Paquetes
 from Transporte import Transporte
 from aima.search import hill_climbing, simulated_annealing
 import timeit
+
 num_paquetes=50
 semilla=1234
 paquetes=Paquetes(num_paquetes,semilla)
