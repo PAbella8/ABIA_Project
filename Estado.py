@@ -10,13 +10,13 @@ class Estado(object):
     Clase que representa el estado del problema.
     '''
 
-    def __init__(self,asignaciones,transporte,paquetes,coste,felicidad) -> None:
+    def __init__(self,asignaciones,transporte,paquetes,coste,felicidad,k=1) -> None:
         self._asignaciones=asignaciones
         self._coste=coste
         self._felicidad=felicidad
         self._transporte=transporte
         self._paquetes=paquetes
-        self.k=1
+        self.k= k
         self.e=1
     def acciones(self,extendido):
         lista_peso_libre=[]
@@ -155,7 +155,7 @@ class Estado(object):
  #       print(coste)
   #      print(felicidad)
    #     print(self)
-        return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad)
+        return Estado(asignaciones,self._transporte,self._paquetes,coste,felicidad,self.k)
 
     def __repr__(self):
         return f"ESTADO: {self._coste} {self._felicidad}"
@@ -164,7 +164,7 @@ class Estado(object):
         return -self._coste#float(self._felicidad)/self._coste
     
     def heuristic_ponderado(self):
-        return self.k*float(self._felicidad)-self._coste
+        return self.k*float(self._felicidad)-(1-self.k)*self._coste
     
     def heuristic_entropia(self):
         total_entropy=0
@@ -177,7 +177,7 @@ class Estado(object):
             total_entropy = total_entropy + (occupancy * math.log(occupancy))
         return  self.k*float(self._felicidad)-self._coste - self.e*total_entropy
     
-def estado_inicial(paquetes: Paquetes,transporte: Transporte):
+def estado_inicial(paquetes: Paquetes,transporte: Transporte,k=1):
     '''
     Función que genera el estado inicial del problema.
     '''
@@ -203,9 +203,9 @@ def estado_inicial(paquetes: Paquetes,transporte: Transporte):
         coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0
         coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5
         #print(coste)
-    return Estado(diccionario,transporte,paquetes,coste,0)
+    return Estado(diccionario,transporte,paquetes,coste,0,k)
 
-def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
+def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte,k=1):
     diccionario={}
     cont=0
     coste=0
@@ -237,5 +237,5 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte):
         coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5
         #print(coste)
     print('estado inicial:',diccionario)
-    return Estado(diccionario,transporte,paquetes,coste,0)
+    return Estado(diccionario,transporte,paquetes,coste,0,k)
 #

@@ -7,7 +7,7 @@ import timeit
 num_paquetes=50
 semilla=1234
 paquetes=Paquetes(num_paquetes,semilla)
-transporte=Transporte(paquetes._lista_paquetes,1.2,semilla)
+transporte=Transporte(paquetes._lista_paquetes,1.6,semilla)
 
 p=Problema(estado_inicial_aleatorio(paquetes,transporte))
 problema=hill_climbing(p)
