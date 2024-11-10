@@ -8,9 +8,9 @@ class Problema(Problem):
     los algoritmos de búsqueda.
     '''
     def __init__(self, initial,extendido=1,heuristica='Basico',simulated_annealing=False):
-        self.pasos=0
-        self.extendido=extendido
-        self.heuristica=heuristica
+        self.pasos=0 #Número de pasos ejecutados
+        self.extendido=extendido #1 Si usamos el oferador SwapOferta 0 si no
+        self.heuristica=heuristica #'Basico' o 'Ponderado'
         self.simulated_annealing = simulated_annealing
         super().__init__(initial)
     
@@ -18,12 +18,10 @@ class Problema(Problem):
         return estado.acciones(self.extendido,self.simulated_annealing)
     
     def result(self,estado,accion):
-        #print(estado._asignaciones)
         return estado.aplicar_accion(accion)
     
     def value(self,estado):
         self.pasos+=1
-        #print(estado._asignaciones)
         if self.heuristica == 'Basico':
             return estado.heuristic_basico()
         elif self.heuristica == 'Ponderado':
