@@ -18,9 +18,10 @@ class Estado(object):
         self._paquetes=paquetes
         self.k= k
         self.e=1
-    def acciones(self,extendido):
+    def acciones(self,extendido,simulated_annealing=False):
         lista_peso_libre=[]
         lista_peso_ocupado=[]
+        list_acciones = []
         for oferta,lista_paquetes in self._asignaciones.items():
             pesomax=self._transporte.pesomax(oferta)
             peso_libre=pesomax
@@ -38,7 +39,10 @@ class Estado(object):
             if extendido:
                 for oferta2 in total_ofertas:
                     if oferta2!=oferta1 and ((oferta2 in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta2)]) or (oferta2 not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta2))):
-                        yield SwapOferta(oferta1,oferta2)
+                        if not simulated_annealing:
+                            yield SwapOferta(oferta1,oferta2)
+                        else:
+                            list_acciones.append(SwapOferta(oferta1,oferta2))
 
             for paquete in self._asignaciones[ofertas_usadas[i]]:
                 peso_paquete,prioridad_paquete=self._paquetes.primer_paquete(paquete)
@@ -47,27 +51,47 @@ class Estado(object):
                 for oferta in ofertas_prioridad:
                     if oferta in ofertas_usadas:
                         if peso_paquete<=lista_peso_libre[ofertas_usadas.index(oferta)]:
-                            yield MovePaquete(paquete,oferta1,oferta)
+                            if not simulated_annealing:
+                                yield MovePaquete(paquete,oferta1,oferta)
+                            else:
+                                list_acciones.append(MovePaquete(paquete,oferta1,oferta))
                         for paquete2 in self._asignaciones[oferta]:
                             peso_paquete2,prioridad_paquete2=self._paquetes.primer_paquete(paquete2)
                             if peso_paquete>=peso_paquete2:
                                 if lista_peso_libre[ofertas_usadas.index(oferta)]+peso_paquete2>=peso_paquete:
                                     if prioridad_paquete<=prioridad_paquete2:
                                         if (oferta[0]+1)//2<=prioridad_paquete:
-                                            yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            if not simulated_annealing:
+                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            else:
+                                                list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                                     else:
                                         if prioridad1<=prioridad_paquete2:
-                                            yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            if not simulated_annealing:
+                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            else:
+                                                list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                             else:
                                 if lista_peso_libre[ofertas_usadas.index(oferta1)]+peso_paquete>=peso_paquete2:
                                     if prioridad_paquete<=prioridad_paquete2:
                                         if (oferta[0]+1)//2<=prioridad_paquete:
-                                            yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            if not simulated_annealing:
+                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            else:
+                                                list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                                     else:
                                         if prioridad1<=prioridad_paquete2:
-                                            yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            if not simulated_annealing:
+                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
+                                            else:
+                                                list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                     elif peso_paquete<=self._transporte.pesomax(oferta):
-                        yield MovePaquete(paquete,oferta1,oferta)
+                        if not simulated_annealing:
+                            yield MovePaquete(paquete,oferta1,oferta)
+                        else:
+                            list_acciones.append(MovePaquete(paquete,oferta1,oferta))
+        if simulated_annealing:
+            yield random.choice(list_acciones)
 
     def aplicar_accion(self,accion):
         asignaciones=copy.deepcopy(self._asignaciones)
@@ -161,7 +185,7 @@ class Estado(object):
         return f"ESTADO: {self._coste} {self._felicidad}"
 
     def heuristic_basico(self):
-        return -self._coste#float(self._felicidad)/self._coste
+        return self._felicidad#float(self._felicidad)/self._coste
     
     def heuristic_ponderado(self):
         return self.k*float(self._felicidad)-(1-self.k)*self._coste

@@ -7,14 +7,15 @@ class Problema(Problem):
     Clase que  implementa el problema. Hereda de Problem (AIMA), lo que la permite usar
     los algoritmos de búsqueda.
     '''
-    def __init__(self, initial,extendido=1,heuristica='Basico'):
+    def __init__(self, initial,extendido=1,heuristica='Basico',simulated_annealing=False):
         self.pasos=0
         self.extendido=extendido
         self.heuristica=heuristica
+        self.simulated_annealing = simulated_annealing
         super().__init__(initial)
     
     def actions(self,estado):
-        return estado.acciones(self.extendido)
+        return estado.acciones(self.extendido,self.simulated_annealing)
     
     def result(self,estado,accion):
         #print(estado._asignaciones)
