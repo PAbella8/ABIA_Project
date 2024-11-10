@@ -11,7 +11,7 @@ class Problema(Problem):
         self.pasos=0 #Número de pasos ejecutados
         self.extendido=extendido #1 Si usamos el oferador SwapOferta 0 si no
         self.heuristica=heuristica #'Basico' o 'Ponderado'
-        self.simulated_annealing = simulated_annealing
+        self.simulated_annealing = simulated_annealing # Si es True las acciones se guardan en una lista y se elige una al azar
         super().__init__(initial)
     
     def actions(self,estado):

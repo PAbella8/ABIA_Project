@@ -42,8 +42,9 @@ class Estado(object):
             if extendido:
                 for oferta2 in total_ofertas:
                     if oferta2!=oferta1 and ((oferta2 in ofertas_usadas and peso_ocupado<=lista_peso_libre[ofertas_usadas.index(oferta2)]) or (oferta2 not in ofertas_usadas and peso_ocupado<=self._transporte.pesomax(oferta2))):
+                        #Si podemos meter todos los paquetes de una oferta en otra (usada o nueva) hace SwapOferta (si caben y cumplen la prioridad)
                         if not simulated_annealing:
-                            yield SwapOferta(oferta1,oferta2)#Si podemos meter todos los paquetes de una oferta en otra (usada o nueva) hace SwapOferta (si caben y cumplen la prioridad)
+                            yield SwapOferta(oferta1,oferta2)
                         else:
                             list_acciones.append(SwapOferta(oferta1,oferta2))
 
@@ -64,8 +65,9 @@ class Estado(object):
                                 if lista_peso_libre[ofertas_usadas.index(oferta)]+peso_paquete2>=peso_paquete:
                                     if prioridad_paquete<=prioridad_paquete2:
                                         if (oferta[0]+1)//2<=prioridad_paquete:
+                                            #Si el paquete más grande cabe en la otra oferta y el paquete de menor prioridad puede ir a la otra oferta hace SwapPaquete
                                             if not simulated_annealing:
-                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)#Si el paquete más grande cabe en la otra oferta y el paquete de menor prioridad puede ir a la otra oferta hace SwapPaquete
+                                                yield SwapPaquetes(paquete,paquete2,oferta1,oferta)
                                             else:
                                                 list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                                     else:
@@ -89,8 +91,9 @@ class Estado(object):
                                             else:
                                                 list_acciones.append(SwapPaquetes(paquete,paquete2,oferta1,oferta))
                     elif peso_paquete<=self._transporte.pesomax(oferta):
+                        #Si no estamos usando la oferta seguro que cabe y hacemos MovePaquete
                         if not simulated_annealing:
-                            yield MovePaquete(paquete,oferta1,oferta)#Si no estamos usando la oferta seguro que cabe y hacemos MovePaquete
+                            yield MovePaquete(paquete,oferta1,oferta)
                         else:
                             list_acciones.append(MovePaquete(paquete,oferta1,oferta))
         if simulated_annealing:
@@ -192,14 +195,14 @@ class Estado(object):
         '''
         Función heurística que busca minimizar el coste y augmentar la felicidad sin ponderación
         '''
-        return -self._coste#float(self._felicidad)/self._coste
+        return -self._coste
     
     def heuristic_ponderado(self):
         '''
         Función heurística que busca minimizar el coste y augmentar la felicidad teniendo 
         en cuenta la ponderación
         '''
-        return self.k*float(self._felicidad)-(1-self.k)*self._coste
+        return self.k*float(self._felicidad)-self._coste
     
     def heuristic_entropia(self):
         '''
@@ -279,7 +282,5 @@ def estado_inicial_aleatorio(paquetes: Paquetes,transporte: Transporte,k=1):
         paquetes.asignar()
         coste+=peso*0.25*(2 if oferta[0]==4 else 1) if oferta[0]>=2 else 0 #Sumamos el coste del almacén
         coste += 1.5*(1+ ((oferta[0]+1)//2)%2) if ((oferta[0]+1)//2)>0 else 5 #Sumamos el coste de envío
-        #print(coste)
-    print('estado inicial:',diccionario)
+
     return Estado(diccionario,transporte,paquetes,coste,0,k)
-#

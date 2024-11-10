@@ -112,7 +112,6 @@ def random_ofertas(list_paquetes: List[Paquete],
     :param seed: Semilla del generador de números aleatorios
     :return: Estructura de ofertas de transporte (u ofertas de envíos)
     """
-    print(proporcion)
 
     def truncate(valor: float) -> float:
         # Función auxiliar para generar precios aleatorios
